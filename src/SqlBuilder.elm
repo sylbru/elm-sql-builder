@@ -17,10 +17,9 @@ type alias TableIdentifier =
     String
 
 
-type alias Table =
-    { name : String
-    , alias : Maybe String
-    }
+type Table
+    = Table String
+    | TableWithAlias String String
 
 
 exampleQuery : SelectQuery
@@ -31,18 +30,18 @@ exampleQuery =
         , Column "f2"
         , AllFromTable "t"
         ]
-    , from = { name = "tabele", alias = Just "t" }
+    , from = TableWithAlias "tabele" "t"
     }
 
 
 tableToString : Table -> String
 tableToString table =
-    case table.alias of
-        Just alias ->
-            table.name ++ " " ++ alias
+    case table of
+        TableWithAlias name alias ->
+            name ++ " " ++ alias
 
-        Nothing ->
-            table.name
+        Table name ->
+            name
 
 
 columnToString : SelectExpression -> String
