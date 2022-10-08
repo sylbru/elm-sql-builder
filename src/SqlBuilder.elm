@@ -10,7 +10,7 @@ type alias SelectQuery =
 type SelectExpression
     = All
     | AllFromTable TableIdentifier
-    | Field String
+    | Column String
 
 
 type alias TableIdentifier =
@@ -26,9 +26,9 @@ type alias Table =
 exampleQuery : SelectQuery
 exampleQuery =
     { select =
-        [ Field "f1"
+        [ Column "f1"
         , All
-        , Field "f2"
+        , Column "f2"
         , AllFromTable "t"
         ]
     , from = { name = "tabele", alias = Just "t" }
@@ -48,7 +48,7 @@ tableToString table =
 columnToString : SelectExpression -> String
 columnToString expression =
     case expression of
-        Field fieldName ->
+        Column fieldName ->
             fieldName
 
         All ->
