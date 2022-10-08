@@ -7,7 +7,13 @@ type alias SelectQuery =
     }
 
 
-type alias Column =
+type Column
+    = All
+    | AllFromTable TableIdentifier
+    | Field String
+
+
+type alias TableIdentifier =
     String
 
 
@@ -19,7 +25,12 @@ type alias Table =
 
 exampleQuery : SelectQuery
 exampleQuery =
-    { select = [ "f1", "f2" ]
+    { select =
+        [ Field "f1"
+        , All
+        , Field "f2"
+        , AllFromTable "t"
+        ]
     , from = { name = "tabele", alias = Just "t" }
     }
 
@@ -34,10 +45,24 @@ tableToString table =
             table.name
 
 
+columnToString : Column -> String
+columnToString column =
+    case column of
+        Field fieldName ->
+            fieldName
+
+        All ->
+            "*"
+
+        AllFromTable tableIdentifier ->
+            tableIdentifier ++ ".*"
+
+
 build : SelectQuery -> String
 build { select, from } =
     [ "SELECT"
-    , String.join ", " select
+    , List.map columnToString select
+        |> String.join ", "
     , "FROM"
     , tableToString from
     ]
