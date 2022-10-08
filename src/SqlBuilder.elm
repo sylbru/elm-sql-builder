@@ -35,11 +35,12 @@ type
 type LiteralValue
     = LiteralTrue
     | LiteralFalse
+    | LiteralString String
 
 
 exampleWhere : WhereExpression
 exampleWhere =
-    Simple LiteralTrue
+    Simple (LiteralString "hey")
 
 
 literalValueToString : LiteralValue -> String
@@ -50,6 +51,9 @@ literalValueToString literalValue =
 
         LiteralFalse ->
             "FALSE"
+
+        LiteralString string ->
+            "\"" ++ string ++ "\""
 
 
 exampleQuery : SelectQuery
