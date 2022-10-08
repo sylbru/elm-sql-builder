@@ -1,0 +1,10 @@
+{
+    "targets": {
+        "elm-sql-builder": {
+            "inputs": [
+                "src/Main.elm"
+            ],
+            "output": "public/main.js"
+        }
+    }
+}
