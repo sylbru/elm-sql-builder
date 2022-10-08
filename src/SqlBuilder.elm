@@ -37,7 +37,7 @@ type WhereExpression
 
 type PrimaryValue
     = Predicate Predicate
-    | Equals PrimaryValue Predicate
+    | Eq PrimaryValue Predicate
 
 
 type Predicate
@@ -126,7 +126,7 @@ primaryToString primaryValue =
         Predicate predicate ->
             predicateToString predicate
 
-        Equals left right ->
+        Eq left right ->
             primaryToString left
                 ++ " = "
                 ++ predicateToString right
@@ -195,7 +195,7 @@ exampleQuery =
 exampleWhere : WhereExpression
 exampleWhere =
     Primary
-        (Equals
+        (Eq
             (Predicate (SimpleExpr (Identifier "f")))
             (SimpleExpr (Literal (LiteralInt 3)))
         )
