@@ -24,16 +24,11 @@ update msg model =
     ( model, Cmd.none )
 
 
-sqlQuery : SqlBuilder.SelectQuery
-sqlQuery =
-    { select = [ "f1", "f2" ], from = "t" }
-
-
 view : Model -> Html Msg
 view model =
-    Html.pre
+    Html.div
         [ Html.Attributes.class "query" ]
-        [ Html.text (SqlBuilder.build sqlQuery)
+        [ Html.text (SqlBuilder.build SqlBuilder.exampleQuery)
         ]
 
 
