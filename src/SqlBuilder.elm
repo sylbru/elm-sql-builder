@@ -12,18 +12,26 @@ type alias Column =
 
 
 type alias Table =
-    String
-
-
-table =
-    "table"
+    { name : String
+    , alias : Maybe String
+    }
 
 
 exampleQuery : SelectQuery
 exampleQuery =
     { select = [ "f1", "f2" ]
-    , from = table
+    , from = { name = "tabele", alias = Just "t" }
     }
+
+
+tableToString : Table -> String
+tableToString table =
+    case table.alias of
+        Just alias ->
+            table.name ++ " " ++ alias
+
+        Nothing ->
+            table.name
 
 
 build : SelectQuery -> String
@@ -31,7 +39,7 @@ build { select, from } =
     [ "SELECT"
     , String.join ", " select
     , "FROM"
-    , from
+    , tableToString from
     ]
         |> String.join " "
 
