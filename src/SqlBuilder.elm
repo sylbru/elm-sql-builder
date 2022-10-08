@@ -11,7 +11,11 @@ type alias SelectQuery =
 type SelectExpression
     = All
     | AllFromTable TableIdentifier
-    | Column String
+    | Column ColumnIdentifier
+
+
+type alias ColumnIdentifier =
+    String
 
 
 type alias TableIdentifier =
@@ -24,11 +28,24 @@ type Table
 
 
 type WhereExpression
-    = Simple LiteralValue
+    = Primary PrimaryValue
     | Not WhereExpression
     | And WhereExpression WhereExpression
     | Or WhereExpression WhereExpression
     | Xor WhereExpression WhereExpression
+
+
+type PrimaryValue
+    = Predicate Predicate
+
+
+type Predicate
+    = SimpleExpr SimpleExpr
+
+
+type SimpleExpr
+    = Literal LiteralValue
+    | Identifier ColumnIdentifier
 
 
 type LiteralValue
@@ -85,11 +102,35 @@ columnToString expression =
             tableIdentifier ++ ".*"
 
 
+predicateToString : Predicate -> String
+predicateToString predicate =
+    case predicate of
+        SimpleExpr simpleExpr ->
+            simpleExprToString simpleExpr
+
+
+simpleExprToString : SimpleExpr -> String
+simpleExprToString simpleExpr =
+    case simpleExpr of
+        Literal literalValue ->
+            literalValueToString literalValue
+
+        Identifier column ->
+            column
+
+
+primaryToString : PrimaryValue -> String
+primaryToString primaryValue =
+    case primaryValue of
+        Predicate predicate ->
+            predicateToString predicate
+
+
 whereToString : WhereExpression -> String
 whereToString whereExpression =
     case whereExpression of
-        Simple value ->
-            literalValueToString value
+        Primary primary ->
+            primaryToString primary
 
         Not subExpression ->
             "(NOT " ++ whereToString subExpression ++ ")"
@@ -139,22 +180,12 @@ build { select, from, whereCondition } =
 
 exampleQuery : SelectQuery
 exampleQuery =
-    { select =
-        [ Column "f1"
-        , All
-        , Column "f2"
-        , AllFromTable "t"
-        ]
-    , from = TableWithAlias "tabele" "t"
+    { select = [ All ]
+    , from = Table "t"
     , whereCondition = Just exampleWhere
     }
 
 
 exampleWhere : WhereExpression
 exampleWhere =
-    And
-        (Simple (LiteralString "hey"))
-        (Or
-            (Simple (LiteralFloat pi))
-            (Simple LiteralTrue)
-        )
+    Primary (Predicate (SimpleExpr (Identifier "f")))
