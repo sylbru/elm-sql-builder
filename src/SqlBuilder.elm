@@ -35,6 +35,7 @@ type
 type LiteralValue
     = LiteralTrue
     | LiteralFalse
+    | LiteralNull
     | LiteralString String
 
 
@@ -51,6 +52,9 @@ literalValueToString literalValue =
 
         LiteralFalse ->
             "FALSE"
+
+        LiteralNull ->
+            "NULL"
 
         LiteralString string ->
             "\"" ++ string ++ "\""
