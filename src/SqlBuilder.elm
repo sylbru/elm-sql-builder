@@ -38,6 +38,11 @@ type WhereExpression
 type PrimaryValue
     = Predicate Predicate
     | Eq PrimaryValue Predicate
+    | Neq PrimaryValue Predicate
+    | Gt PrimaryValue Predicate
+    | Gte PrimaryValue Predicate
+    | Lt PrimaryValue Predicate
+    | Lte PrimaryValue Predicate
 
 
 type Predicate
@@ -127,9 +132,45 @@ primaryToString primaryValue =
             predicateToString predicate
 
         Eq left right ->
-            primaryToString left
-                ++ " = "
-                ++ predicateToString right
+            binaryOperationToString
+                (primaryToString left)
+                "="
+                (predicateToString right)
+
+        Neq left right ->
+            binaryOperationToString
+                (primaryToString left)
+                "<>"
+                (predicateToString right)
+
+        Gt left right ->
+            binaryOperationToString
+                (primaryToString left)
+                ">"
+                (predicateToString right)
+
+        Gte left right ->
+            binaryOperationToString
+                (primaryToString left)
+                ">="
+                (predicateToString right)
+
+        Lt left right ->
+            binaryOperationToString
+                (primaryToString left)
+                "<"
+                (predicateToString right)
+
+        Lte left right ->
+            binaryOperationToString
+                (primaryToString left)
+                "<="
+                (predicateToString right)
+
+
+binaryOperationToString : String -> String -> String -> String
+binaryOperationToString left operator right =
+    "(" ++ left ++ " " ++ operator ++ " " ++ right ++ ")"
 
 
 whereToString : WhereExpression -> String
@@ -195,7 +236,7 @@ exampleQuery =
 exampleWhere : WhereExpression
 exampleWhere =
     Primary
-        (Eq
+        (Gt
             (Predicate (SimpleExpr (Identifier "f")))
             (SimpleExpr (Literal (LiteralInt 3)))
         )
