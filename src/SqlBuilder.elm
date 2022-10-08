@@ -4,6 +4,7 @@ module SqlBuilder exposing (SelectQuery, build, exampleQuery)
 type alias SelectQuery =
     { select : List SelectExpression
     , from : Table
+    , whereCondition : Maybe WhereExpression
     }
 
 
@@ -22,6 +23,35 @@ type Table
     | TableWithAlias String String
 
 
+type
+    WhereExpression
+    --| Not WhereExpression
+    --| And WhereExpression WhereExpression
+    --| Or WhereExpression WhereExpression
+    --| Xor WhereExpression WhereExpression
+    = Simple LiteralValue
+
+
+type LiteralValue
+    = LiteralTrue
+    | LiteralFalse
+
+
+exampleWhere : WhereExpression
+exampleWhere =
+    Simple LiteralTrue
+
+
+literalValueToString : LiteralValue -> String
+literalValueToString literalValue =
+    case literalValue of
+        LiteralTrue ->
+            "TRUE"
+
+        LiteralFalse ->
+            "FALSE"
+
+
 exampleQuery : SelectQuery
 exampleQuery =
     { select =
@@ -31,6 +61,7 @@ exampleQuery =
         , AllFromTable "t"
         ]
     , from = TableWithAlias "tabele" "t"
+    , whereCondition = Just exampleWhere
     }
 
 
@@ -57,20 +88,29 @@ columnToString expression =
             tableIdentifier ++ ".*"
 
 
+whereToString : WhereExpression -> String
+whereToString whereExpression =
+    case whereExpression of
+        Simple value ->
+            literalValueToString value
+
+
 build : SelectQuery -> String
-build { select, from } =
-    [ "SELECT"
-    , List.map columnToString select
-        |> String.join ", "
-    , "FROM"
-    , tableToString from
-    ]
-        |> String.join " "
+build { select, from, whereCondition } =
+    let
+        parts =
+            [ "SELECT"
+            , List.map columnToString select
+                |> String.join ", "
+            , "FROM"
+            , tableToString from
+            ]
+                ++ (case whereCondition of
+                        Just whereCondition_ ->
+                            [ "WHERE", whereToString whereCondition_ ]
 
-
-
-{-
-   select
-   tables
-   where
--}
+                        Nothing ->
+                            []
+                   )
+    in
+    String.join " " parts
