@@ -92,26 +92,26 @@ whereToString whereExpression =
             literalValueToString value
 
         Not subExpression ->
-            "NOT (" ++ whereToString subExpression ++ ")"
+            "(NOT " ++ whereToString subExpression ++ ")"
 
         And leftExpr rightExpr ->
             "("
                 ++ whereToString leftExpr
-                ++ ") AND ("
+                ++ " AND "
                 ++ whereToString rightExpr
                 ++ ")"
 
         Or leftExpr rightExpr ->
             "("
                 ++ whereToString leftExpr
-                ++ ") OR ("
+                ++ " OR "
                 ++ whereToString rightExpr
                 ++ ")"
 
         Xor leftExpr rightExpr ->
             "("
                 ++ whereToString leftExpr
-                ++ ") XOR ("
+                ++ " XOR "
                 ++ whereToString rightExpr
                 ++ ")"
 
