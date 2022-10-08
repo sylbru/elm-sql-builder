@@ -36,11 +36,8 @@ type LiteralValue
     | LiteralFalse
     | LiteralNull
     | LiteralString String
-
-
-exampleWhere : WhereExpression
-exampleWhere =
-    And (Simple (LiteralString "hey")) (Simple LiteralFalse)
+    | LiteralInt Int
+    | LiteralFloat Float
 
 
 literalValueToString : LiteralValue -> String
@@ -58,18 +55,11 @@ literalValueToString literalValue =
         LiteralString string ->
             "\"" ++ string ++ "\""
 
+        LiteralInt intNumber ->
+            String.fromInt intNumber
 
-exampleQuery : SelectQuery
-exampleQuery =
-    { select =
-        [ Column "f1"
-        , All
-        , Column "f2"
-        , AllFromTable "t"
-        ]
-    , from = TableWithAlias "tabele" "t"
-    , whereCondition = Just exampleWhere
-    }
+        LiteralFloat floatNumber ->
+            String.fromFloat floatNumber
 
 
 tableToString : Table -> String
@@ -145,3 +135,26 @@ build { select, from, whereCondition } =
                    )
     in
     String.join " " parts
+
+
+exampleQuery : SelectQuery
+exampleQuery =
+    { select =
+        [ Column "f1"
+        , All
+        , Column "f2"
+        , AllFromTable "t"
+        ]
+    , from = TableWithAlias "tabele" "t"
+    , whereCondition = Just exampleWhere
+    }
+
+
+exampleWhere : WhereExpression
+exampleWhere =
+    And
+        (Simple (LiteralString "hey"))
+        (Or
+            (Simple (LiteralFloat pi))
+            (Simple LiteralTrue)
+        )
