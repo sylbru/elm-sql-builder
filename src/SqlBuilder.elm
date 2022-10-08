@@ -23,13 +23,12 @@ type Table
     | TableWithAlias String String
 
 
-type
-    WhereExpression
-    --| Not WhereExpression
-    --| And WhereExpression WhereExpression
-    --| Or WhereExpression WhereExpression
-    --| Xor WhereExpression WhereExpression
+type WhereExpression
     = Simple LiteralValue
+    | Not WhereExpression
+    | And WhereExpression WhereExpression
+    | Or WhereExpression WhereExpression
+    | Xor WhereExpression WhereExpression
 
 
 type LiteralValue
@@ -41,7 +40,7 @@ type LiteralValue
 
 exampleWhere : WhereExpression
 exampleWhere =
-    Simple (LiteralString "hey")
+    And (Simple (LiteralString "hey")) (Simple LiteralFalse)
 
 
 literalValueToString : LiteralValue -> String
@@ -101,6 +100,30 @@ whereToString whereExpression =
     case whereExpression of
         Simple value ->
             literalValueToString value
+
+        Not subExpression ->
+            "NOT (" ++ whereToString subExpression ++ ")"
+
+        And leftExpr rightExpr ->
+            "("
+                ++ whereToString leftExpr
+                ++ ") AND ("
+                ++ whereToString rightExpr
+                ++ ")"
+
+        Or leftExpr rightExpr ->
+            "("
+                ++ whereToString leftExpr
+                ++ ") OR ("
+                ++ whereToString rightExpr
+                ++ ")"
+
+        Xor leftExpr rightExpr ->
+            "("
+                ++ whereToString leftExpr
+                ++ ") XOR ("
+                ++ whereToString rightExpr
+                ++ ")"
 
 
 build : SelectQuery -> String
