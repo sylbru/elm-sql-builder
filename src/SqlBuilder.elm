@@ -1,11 +1,12 @@
 module SqlBuilder exposing (SelectQuery, exampleQuery, exampleQueryWithBuilder, toString)
 
 
-type alias SelectQuery =
-    { select : List SelectExpression
-    , from : Maybe Table
-    , whereCondition : Maybe Expression
-    }
+type SelectQuery a
+    = SelectQuery
+        { select : List SelectExpression
+        , from : Maybe Table
+        , whereCondition : Maybe Expression
+        }
 
 
 type SelectExpression
@@ -213,8 +214,8 @@ defaultIfEmpty default list =
         list
 
 
-toString : SelectQuery -> String
-toString selectQuery =
+toString : SelectQuery a -> String
+toString (SelectQuery selectQuery) =
     let
         selectClause =
             [ "SELECT"
@@ -254,69 +255,67 @@ toString selectQuery =
         |> String.join "\n"
 
 
-select : SelectQuery
+select : SelectQuery a
 select =
-    { select = []
-    , from = Nothing
-    , whereCondition = Nothing
-    }
+    SelectQuery <|
+        { select = []
+        , from = Nothing
+        , whereCondition = Nothing
+        }
 
 
-withColumnIdentifier : ColumnIdentifier -> SelectQuery -> SelectQuery
-withColumnIdentifier identifier query =
-    let
-        columns =
-            query.select
-    in
-    { query
-        | select =
-            columns
-                ++ [ Expression <| Primary <| Predicate <| SimpleExpr <| Identifier identifier ]
-    }
+withColumnIdentifier : ColumnIdentifier -> SelectQuery a -> SelectQuery a
+withColumnIdentifier identifier (SelectQuery query) =
+    SelectQuery <|
+        { query
+            | select =
+                query.select
+                    ++ [ Expression <| Primary <| Predicate <| SimpleExpr <| Identifier identifier ]
+        }
 
 
-withColumnExpression : Expression -> SelectQuery -> SelectQuery
-withColumnExpression expression query =
-    let
-        columns =
-            query.select
-    in
-    { query | select = columns ++ [ Expression expression ] }
+withColumnExpression : Expression -> SelectQuery a -> SelectQuery a
+withColumnExpression expression (SelectQuery query) =
+    SelectQuery <|
+        { query | select = query.select ++ [ Expression expression ] }
 
 
-withColumnsIdentifiers : List ColumnIdentifier -> SelectQuery -> SelectQuery
-withColumnsIdentifiers identifiers query =
+withColumnsIdentifiers : List ColumnIdentifier -> SelectQuery a -> SelectQuery a
+withColumnsIdentifiers identifiers (SelectQuery query) =
     List.foldl
         (\identifier q -> q |> withColumnIdentifier identifier)
-        query
+        (SelectQuery query)
         identifiers
 
 
-withTable : TableIdentifier -> SelectQuery -> SelectQuery
-withTable table query =
-    { query | from = Just <| Table table }
+withTable : TableIdentifier -> SelectQuery a -> SelectQuery a
+withTable table (SelectQuery query) =
+    SelectQuery { query | from = Just <| Table table }
 
 
-withAliasedTable : TableIdentifier -> TableIdentifier -> SelectQuery -> SelectQuery
-withAliasedTable table alias query =
-    { query | from = Just <| TableWithAlias table alias }
+withAliasedTable : TableIdentifier -> TableIdentifier -> SelectQuery a -> SelectQuery a
+withAliasedTable table alias (SelectQuery query) =
+    SelectQuery <|
+        { query | from = Just <| TableWithAlias table alias }
 
 
-exampleQuery : SelectQuery
+exampleQuery : SelectQuery a
 exampleQuery =
-    { select = [ Expression <| Primary <| Predicate <| SimpleExpr <| Identifier "id" ]
-    , from = Just <| Table "t"
-    , whereCondition = Just exampleWhere
-    }
+    SelectQuery <|
+        { select = [ Expression <| Primary <| Predicate <| SimpleExpr <| Identifier "id" ]
+        , from = Just <| Table "t"
+        , whereCondition = Just exampleWhere
+        }
 
 
-exampleQueryWithBuilder : SelectQuery
+exampleQueryWithBuilder : SelectQuery a
 exampleQueryWithBuilder =
     select
         |> withAliasedTable "main_table" "mt"
         --|> provideAvailableFieldsForTable "main_table" [ "f", "g" ]
         |> withColumnIdentifier "f"
         |> withColumnIdentifier "g"
+        |> withColumnIdentifier "h"
 
 
 exampleWhere : Expression
