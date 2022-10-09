@@ -313,10 +313,10 @@ exampleQuery =
 exampleQueryWithBuilder : SelectQuery
 exampleQueryWithBuilder =
     select
-        |> withAliasedTable "mainTablauie" "mt"
+        |> withAliasedTable "main_table" "mt"
+        --|> provideAvailableFieldsForTable "main_table" [ "f", "g" ]
         |> withColumnIdentifier "f"
-        |> withColumnsIdentifiers [ "g", "h" ]
-        |> withColumnExpression (And (Primary (Predicate (SimpleExpr <| Literal <| LiteralInt 1))) (Primary (Predicate (SimpleExpr (Literal (LiteralInt 2))))))
+        |> withColumnIdentifier "g"
 
 
 exampleWhere : Expression
