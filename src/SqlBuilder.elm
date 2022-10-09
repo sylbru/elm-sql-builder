@@ -292,6 +292,16 @@ withColumnsIdentifiers identifiers query =
         identifiers
 
 
+withTable : TableIdentifier -> SelectQuery -> SelectQuery
+withTable table query =
+    { query | from = Just <| Table table }
+
+
+withAliasedTable : TableIdentifier -> TableIdentifier -> SelectQuery -> SelectQuery
+withAliasedTable table alias query =
+    { query | from = Just <| TableWithAlias table alias }
+
+
 exampleQuery : SelectQuery
 exampleQuery =
     { select = [ Expression <| Primary <| Predicate <| SimpleExpr <| Identifier "id" ]
@@ -303,6 +313,7 @@ exampleQuery =
 exampleQueryWithBuilder : SelectQuery
 exampleQueryWithBuilder =
     select
+        |> withAliasedTable "mainTablauie" "mt"
         |> withColumnIdentifier "f"
         |> withColumnsIdentifiers [ "g", "h" ]
         |> withColumnExpression (And (Primary (Predicate (SimpleExpr <| Literal <| LiteralInt 1))) (Primary (Predicate (SimpleExpr (Literal (LiteralInt 2))))))
