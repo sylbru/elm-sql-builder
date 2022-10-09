@@ -275,6 +275,14 @@ withColumn identifier query =
     { query | select = columns ++ [ Expression <| Identifier identifier ] }
 
 
+withColumns : List ColumnIdentifier -> SelectQuery -> SelectQuery
+withColumns identifiers query =
+    List.foldl
+        (\identifier q -> q |> withColumn identifier)
+        query
+        identifiers
+
+
 exampleQuery : SelectQuery
 exampleQuery =
     { select = [ Expression <| Identifier "id" ]
@@ -288,6 +296,7 @@ exampleQueryWithBuilder =
     select
         |> withColumn "f"
         |> withColumn "g"
+        |> withColumns [ "h", "i", "j" ]
 
 
 exampleWhere : WhereExpression
