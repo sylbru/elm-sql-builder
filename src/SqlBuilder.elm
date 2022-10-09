@@ -1,4 +1,4 @@
-module SqlBuilder exposing (SelectQuery, build, exampleQuery)
+module SqlBuilder exposing (SelectQuery, exampleQuery, toString)
 
 
 type alias SelectQuery =
@@ -208,8 +208,8 @@ whereToString whereExpression =
                 ++ ")"
 
 
-build : SelectQuery -> String
-build selectQuery =
+toString : SelectQuery -> String
+toString selectQuery =
     let
         selectClause =
             [ "SELECT"
