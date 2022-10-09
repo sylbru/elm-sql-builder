@@ -28,7 +28,7 @@ view : Model -> Html Msg
 view model =
     Html.div
         [ Html.Attributes.class "query" ]
-        [ Html.text (SqlBuilder.toString SqlBuilder.exampleQuery)
+        [ Html.text (SqlBuilder.toString SqlBuilder.exampleQueryWithBuilder)
         ]
 
 

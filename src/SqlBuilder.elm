@@ -1,4 +1,4 @@
-module SqlBuilder exposing (SelectQuery, exampleQuery, toString)
+module SqlBuilder exposing (SelectQuery, exampleQuery, exampleQueryWithBuilder, toString)
 
 
 type alias SelectQuery =
@@ -208,12 +208,22 @@ whereToString whereExpression =
                 ++ ")"
 
 
+defaultIfEmpty : String -> List String -> List String
+defaultIfEmpty default list =
+    if List.isEmpty list then
+        [ default ]
+
+    else
+        list
+
+
 toString : SelectQuery -> String
 toString selectQuery =
     let
         selectClause =
             [ "SELECT"
             , List.map columnToString selectQuery.select
+                |> defaultIfEmpty "1"
                 |> String.join ", "
             ]
 
@@ -248,12 +258,36 @@ toString selectQuery =
         |> String.join "\n"
 
 
+select : SelectQuery
+select =
+    { select = []
+    , from = Nothing
+    , whereCondition = Nothing
+    }
+
+
+withColumn : ColumnIdentifier -> SelectQuery -> SelectQuery
+withColumn identifier query =
+    let
+        columns =
+            query.select
+    in
+    { query | select = columns ++ [ Expression <| Identifier identifier ] }
+
+
 exampleQuery : SelectQuery
 exampleQuery =
     { select = [ Expression <| Identifier "id" ]
     , from = Just <| Table "t"
     , whereCondition = Just exampleWhere
     }
+
+
+exampleQueryWithBuilder : SelectQuery
+exampleQueryWithBuilder =
+    select
+        |> withColumn "f"
+        |> withColumn "g"
 
 
 exampleWhere : WhereExpression
@@ -263,11 +297,3 @@ exampleWhere =
             (Predicate (SimpleExpr (Identifier "f")))
             (SimpleExpr (Literal (LiteralInt 3)))
         )
-
-
-select : SelectQuery
-select =
-    { select = [ All ]
-    , from = Nothing
-    , whereCondition = Nothing
-    }
