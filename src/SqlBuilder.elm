@@ -3,7 +3,7 @@ module SqlBuilder exposing (SelectQuery, build, exampleQuery)
 
 type alias SelectQuery =
     { select : List SelectExpression
-    , from : Table
+    , from : Maybe Table
     , whereCondition : Maybe WhereExpression
     }
 
@@ -12,6 +12,7 @@ type SelectExpression
     = All
     | AllFromTable TableIdentifier
     | Column ColumnIdentifier
+    | Expression SimpleExpr
 
 
 type alias ColumnIdentifier =
@@ -106,6 +107,9 @@ columnToString expression =
 
         AllFromTable tableIdentifier ->
             tableIdentifier ++ ".*"
+
+        Expression simpleExpression ->
+            simpleExprToString simpleExpression
 
 
 predicateToString : Predicate -> String
@@ -205,30 +209,49 @@ whereToString whereExpression =
 
 
 build : SelectQuery -> String
-build { select, from, whereCondition } =
+build selectQuery =
     let
-        parts =
+        selectClause =
             [ "SELECT"
-            , List.map columnToString select
+            , List.map columnToString selectQuery.select
                 |> String.join ", "
-            , "FROM"
-            , tableToString from
             ]
-                ++ (case whereCondition of
-                        Just whereCondition_ ->
-                            [ "WHERE", whereToString whereCondition_ ]
 
-                        Nothing ->
-                            []
-                   )
+        fromClause =
+            case selectQuery.from of
+                Just from ->
+                    Just
+                        [ "FROM"
+                        , tableToString from
+                        ]
+
+                Nothing ->
+                    Nothing
+
+        whereClause =
+            case selectQuery.whereCondition of
+                Just whereCondition ->
+                    Just [ "WHERE", whereToString whereCondition ]
+
+                Nothing ->
+                    Nothing
+
+        clauses =
+            List.filterMap identity
+                [ Just selectClause
+                , fromClause
+                , whereClause
+                ]
     in
-    String.join " " parts
+    clauses
+        |> List.concat
+        |> String.join "\n"
 
 
 exampleQuery : SelectQuery
 exampleQuery =
-    { select = [ All ]
-    , from = Table "t"
+    { select = [ Expression <| Identifier "id" ]
+    , from = Just <| Table "t"
     , whereCondition = Just exampleWhere
     }
 
@@ -240,3 +263,11 @@ exampleWhere =
             (Predicate (SimpleExpr (Identifier "f")))
             (SimpleExpr (Literal (LiteralInt 3)))
         )
+
+
+select : SelectQuery
+select =
+    { select = [ All ]
+    , from = Nothing
+    , whereCondition = Nothing
+    }
