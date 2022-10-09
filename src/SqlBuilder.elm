@@ -4,15 +4,14 @@ module SqlBuilder exposing (SelectQuery, exampleQuery, exampleQueryWithBuilder, 
 type alias SelectQuery =
     { select : List SelectExpression
     , from : Maybe Table
-    , whereCondition : Maybe WhereExpression
+    , whereCondition : Maybe Expression
     }
 
 
 type SelectExpression
     = All
     | AllFromTable TableIdentifier
-    | Column ColumnIdentifier
-    | Expression SimpleExpr
+    | Expression Expression
 
 
 type alias ColumnIdentifier =
@@ -28,12 +27,12 @@ type Table
     | TableWithAlias String String
 
 
-type WhereExpression
+type Expression
     = Primary PrimaryValue
-    | Not WhereExpression
-    | And WhereExpression WhereExpression
-    | Or WhereExpression WhereExpression
-    | Xor WhereExpression WhereExpression
+    | Not Expression
+    | And Expression Expression
+    | Or Expression Expression
+    | Xor Expression Expression
 
 
 type PrimaryValue
@@ -97,19 +96,16 @@ tableToString table =
 
 
 columnToString : SelectExpression -> String
-columnToString expression =
-    case expression of
-        Column fieldName ->
-            fieldName
-
+columnToString column =
+    case column of
         All ->
             "*"
 
         AllFromTable tableIdentifier ->
             tableIdentifier ++ ".*"
 
-        Expression simpleExpression ->
-            simpleExprToString simpleExpression
+        Expression expression ->
+            expressionToString expression
 
 
 predicateToString : Predicate -> String
@@ -177,34 +173,34 @@ binaryOperationToString left operator right =
     "(" ++ left ++ " " ++ operator ++ " " ++ right ++ ")"
 
 
-whereToString : WhereExpression -> String
-whereToString whereExpression =
-    case whereExpression of
+expressionToString : Expression -> String
+expressionToString expression =
+    case expression of
         Primary primary ->
             primaryToString primary
 
         Not subExpression ->
-            "(NOT " ++ whereToString subExpression ++ ")"
+            "(NOT " ++ expressionToString subExpression ++ ")"
 
         And leftExpr rightExpr ->
             "("
-                ++ whereToString leftExpr
+                ++ expressionToString leftExpr
                 ++ " AND "
-                ++ whereToString rightExpr
+                ++ expressionToString rightExpr
                 ++ ")"
 
         Or leftExpr rightExpr ->
             "("
-                ++ whereToString leftExpr
+                ++ expressionToString leftExpr
                 ++ " OR "
-                ++ whereToString rightExpr
+                ++ expressionToString rightExpr
                 ++ ")"
 
         Xor leftExpr rightExpr ->
             "("
-                ++ whereToString leftExpr
+                ++ expressionToString leftExpr
                 ++ " XOR "
-                ++ whereToString rightExpr
+                ++ expressionToString rightExpr
                 ++ ")"
 
 
@@ -241,7 +237,7 @@ toString selectQuery =
         whereClause =
             case selectQuery.whereCondition of
                 Just whereCondition ->
-                    Just [ "WHERE", whereToString whereCondition ]
+                    Just [ "WHERE", expressionToString whereCondition ]
 
                 Nothing ->
                     Nothing
@@ -266,26 +262,39 @@ select =
     }
 
 
-withColumn : ColumnIdentifier -> SelectQuery -> SelectQuery
-withColumn identifier query =
+withColumnIdentifier : ColumnIdentifier -> SelectQuery -> SelectQuery
+withColumnIdentifier identifier query =
     let
         columns =
             query.select
     in
-    { query | select = columns ++ [ Expression <| Identifier identifier ] }
+    { query
+        | select =
+            columns
+                ++ [ Expression <| Primary <| Predicate <| SimpleExpr <| Identifier identifier ]
+    }
 
 
-withColumns : List ColumnIdentifier -> SelectQuery -> SelectQuery
-withColumns identifiers query =
+withColumnExpression : Expression -> SelectQuery -> SelectQuery
+withColumnExpression expression query =
+    let
+        columns =
+            query.select
+    in
+    { query | select = columns ++ [ Expression expression ] }
+
+
+withColumnsIdentifiers : List ColumnIdentifier -> SelectQuery -> SelectQuery
+withColumnsIdentifiers identifiers query =
     List.foldl
-        (\identifier q -> q |> withColumn identifier)
+        (\identifier q -> q |> withColumnIdentifier identifier)
         query
         identifiers
 
 
 exampleQuery : SelectQuery
 exampleQuery =
-    { select = [ Expression <| Identifier "id" ]
+    { select = [ Expression <| Primary <| Predicate <| SimpleExpr <| Identifier "id" ]
     , from = Just <| Table "t"
     , whereCondition = Just exampleWhere
     }
@@ -294,12 +303,12 @@ exampleQuery =
 exampleQueryWithBuilder : SelectQuery
 exampleQueryWithBuilder =
     select
-        |> withColumn "f"
-        |> withColumn "g"
-        |> withColumns [ "h", "i", "j" ]
+        |> withColumnIdentifier "f"
+        |> withColumnsIdentifiers [ "g", "h" ]
+        |> withColumnExpression (And (Primary (Predicate (SimpleExpr <| Literal <| LiteralInt 1))) (Primary (Predicate (SimpleExpr (Literal (LiteralInt 2))))))
 
 
-exampleWhere : WhereExpression
+exampleWhere : Expression
 exampleWhere =
     Primary
         (Gt
