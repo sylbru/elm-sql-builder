@@ -244,7 +244,7 @@ toString selectQuery =
                 ]
     in
     clauses
-        |> List.concat
+        |> List.map (String.join " ")
         |> String.join "\n"
 
 
