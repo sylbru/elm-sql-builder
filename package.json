@@ -1,5 +1,5 @@
 {
-  "devDependencies": {
-    "elm-watch": "^1.0.2"
+  "dependencies": {
+    "elm-test": "^0.19.1-revision10"
   }
 }
