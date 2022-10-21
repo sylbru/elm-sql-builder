@@ -1,4 +1,4 @@
-module SqlBuilder exposing (SelectQuery, exampleQuery, exampleQueryWithBuilder, toString)
+module SqlBuilder exposing (SelectQuery, select, toString, withAliasedTable, withColumnIdentifier, withTable)
 
 
 type SelectQuery a
@@ -297,31 +297,3 @@ withAliasedTable : TableIdentifier -> TableIdentifier -> SelectQuery a -> Select
 withAliasedTable table alias (SelectQuery query) =
     SelectQuery <|
         { query | from = Just <| TableWithAlias table alias }
-
-
-exampleQuery : SelectQuery a
-exampleQuery =
-    SelectQuery <|
-        { select = [ Expression <| Primary <| Predicate <| SimpleExpr <| Identifier "id" ]
-        , from = Just <| Table "t"
-        , whereCondition = Just exampleWhere
-        }
-
-
-exampleQueryWithBuilder : SelectQuery a
-exampleQueryWithBuilder =
-    select
-        |> withAliasedTable "main_table" "mt"
-        --|> provideAvailableFieldsForTable "main_table" [ "f", "g" ]
-        |> withColumnIdentifier "f"
-        |> withColumnIdentifier "g"
-        |> withColumnIdentifier "h"
-
-
-exampleWhere : Expression
-exampleWhere =
-    Primary
-        (Gt
-            (Predicate (SimpleExpr (Identifier "f")))
-            (SimpleExpr (Literal (LiteralInt 3)))
-        )
