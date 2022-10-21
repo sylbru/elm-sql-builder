@@ -1,4 +1,4 @@
-module SqlBuilder exposing (SelectQuery, select, toString, withAliasedTable, withColumnIdentifier, withTable)
+module SqlBuilder exposing (SelectQuery, select, toString, withAliasedTable, withColumnIdentifier, withColumnsIdentifiers, withTable)
 
 
 type SelectQuery a
