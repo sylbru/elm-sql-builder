@@ -133,40 +133,22 @@ primaryToString primaryValue =
             predicateToString predicate
 
         Eq left right ->
-            binaryOperationToString
-                (primaryToString left)
-                "="
-                (predicateToString right)
+            binaryOperationToString (primaryToString left) "=" (predicateToString right)
 
         Neq left right ->
-            binaryOperationToString
-                (primaryToString left)
-                "<>"
-                (predicateToString right)
+            binaryOperationToString (primaryToString left) "<>" (predicateToString right)
 
         Gt left right ->
-            binaryOperationToString
-                (primaryToString left)
-                ">"
-                (predicateToString right)
+            binaryOperationToString (primaryToString left) ">" (predicateToString right)
 
         Gte left right ->
-            binaryOperationToString
-                (primaryToString left)
-                ">="
-                (predicateToString right)
+            binaryOperationToString (primaryToString left) ">=" (predicateToString right)
 
         Lt left right ->
-            binaryOperationToString
-                (primaryToString left)
-                "<"
-                (predicateToString right)
+            binaryOperationToString (primaryToString left) "<" (predicateToString right)
 
         Lte left right ->
-            binaryOperationToString
-                (primaryToString left)
-                "<="
-                (predicateToString right)
+            binaryOperationToString (primaryToString left) "<=" (predicateToString right)
 
 
 binaryOperationToString : String -> String -> String -> String
@@ -184,25 +166,13 @@ expressionToString expression =
             "(NOT " ++ expressionToString subExpression ++ ")"
 
         And leftExpr rightExpr ->
-            "("
-                ++ expressionToString leftExpr
-                ++ " AND "
-                ++ expressionToString rightExpr
-                ++ ")"
+            binaryOperationToString (expressionToString leftExpr) "AND" (expressionToString rightExpr)
 
         Or leftExpr rightExpr ->
-            "("
-                ++ expressionToString leftExpr
-                ++ " OR "
-                ++ expressionToString rightExpr
-                ++ ")"
+            binaryOperationToString (expressionToString leftExpr) "OR" (expressionToString rightExpr)
 
         Xor leftExpr rightExpr ->
-            "("
-                ++ expressionToString leftExpr
-                ++ " XOR "
-                ++ expressionToString rightExpr
-                ++ ")"
+            binaryOperationToString (expressionToString leftExpr) "XOR" (expressionToString rightExpr)
 
 
 defaultIfEmpty : String -> List String -> List String
