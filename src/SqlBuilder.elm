@@ -1,4 +1,4 @@
-module SqlBuilder exposing (SelectQuery, select, toString, withAliasedTable, withColumnIdentifier, withColumnsIdentifiers, withTable)
+module SqlBuilder exposing (SelectQuery, availableFields, requiredFields, select, toString, withAliasedTable, withColumnIdentifier, withColumnsIdentifiers, withTable, withTableContaining)
 
 
 type SelectQuery a
@@ -26,6 +26,7 @@ type alias TableIdentifier =
 type Table
     = Table String
     | TableWithAlias String String
+    | TableWithFields String (List ColumnIdentifier)
 
 
 type Expression
@@ -53,6 +54,10 @@ type Predicate
 type SimpleExpr
     = Literal LiteralValue
     | Identifier ColumnIdentifier
+
+
+type alias Error =
+    String
 
 
 type LiteralValue
@@ -93,6 +98,9 @@ tableToString table =
             name ++ " " ++ alias
 
         Table name ->
+            name
+
+        TableWithFields name _ ->
             name
 
 
@@ -184,45 +192,164 @@ defaultIfEmpty default list =
         list
 
 
-toString : SelectQuery a -> String
+toString : SelectQuery a -> Result Error String
 toString (SelectQuery selectQuery) =
-    let
-        selectClause =
-            [ "SELECT"
-            , List.map columnToString selectQuery.select
-                |> defaultIfEmpty "1"
-                |> String.join ", "
-            ]
-
-        fromClause =
-            case selectQuery.from of
-                Just from ->
-                    Just
-                        [ "FROM"
-                        , tableToString from
-                        ]
-
-                Nothing ->
-                    Nothing
-
-        whereClause =
-            case selectQuery.whereCondition of
-                Just whereCondition ->
-                    Just [ "WHERE", expressionToString whereCondition ]
-
-                Nothing ->
-                    Nothing
-
-        clauses =
-            List.filterMap identity
-                [ Just selectClause
-                , fromClause
-                , whereClause
+    if isValid (SelectQuery selectQuery) then
+        let
+            selectClause =
+                [ "SELECT"
+                , List.map columnToString selectQuery.select
+                    |> defaultIfEmpty "1"
+                    |> String.join ", "
                 ]
+
+            fromClause =
+                case selectQuery.from of
+                    Just from ->
+                        Just
+                            [ "FROM"
+                            , tableToString from
+                            ]
+
+                    Nothing ->
+                        Nothing
+
+            whereClause =
+                case selectQuery.whereCondition of
+                    Just whereCondition ->
+                        Just [ "WHERE", expressionToString whereCondition ]
+
+                    Nothing ->
+                        Nothing
+
+            clauses =
+                List.filterMap identity
+                    [ Just selectClause
+                    , fromClause
+                    , whereClause
+                    ]
+        in
+        Ok <|
+            (clauses
+                |> List.map (String.join " ")
+                |> String.join "\n"
+            )
+
+    else
+        Err "Can’t build query"
+
+
+isValid : SelectQuery a -> Bool
+isValid ((SelectQuery selectQuery) as wrapped) =
+    let
+        tables =
+            case selectQuery.from of
+                Just fromTable ->
+                    [ fromTable ]
+
+                Nothing ->
+                    []
+
+        tableHasFieldsInfo : Table -> Bool
+        tableHasFieldsInfo table =
+            case table of
+                TableWithFields _ _ ->
+                    True
+
+                _ ->
+                    False
     in
-    clauses
-        |> List.map (String.join " ")
-        |> String.join "\n"
+    -- At least one table has no field info,
+    -- so we can’t know if fields are unavailable
+    List.any (not << tableHasFieldsInfo) tables
+        || -- All tables have field info, we can check if
+           -- all required fields are available
+           List.all
+            (\fieldInSelect -> List.member fieldInSelect (availableFields wrapped))
+            (requiredFields wrapped)
+
+
+availableFields : SelectQuery a -> List ColumnIdentifier
+availableFields (SelectQuery selectQuery) =
+    let
+        from =
+            selectQuery.from
+    in
+    case from of
+        Just (TableWithFields _ fields) ->
+            fields
+
+        _ ->
+            []
+
+
+requiredFields : SelectQuery a -> List ColumnIdentifier
+requiredFields (SelectQuery query) =
+    List.concat (List.map fieldsInSelectExpression query.select)
+
+
+fieldsInSelectExpression : SelectExpression -> List ColumnIdentifier
+fieldsInSelectExpression selectExpression =
+    case selectExpression of
+        Expression expression ->
+            fieldsInExpression expression
+
+        _ ->
+            []
+
+
+fieldsInExpression : Expression -> List ColumnIdentifier
+fieldsInExpression expression =
+    case expression of
+        Primary primaryValue ->
+            fieldsInPrimaryValue primaryValue
+
+        Not subExpression ->
+            fieldsInExpression subExpression
+
+        And leftExpression rightExpression ->
+            List.append (fieldsInExpression leftExpression) (fieldsInExpression rightExpression)
+
+        Or leftExpression rightExpression ->
+            List.append (fieldsInExpression leftExpression) (fieldsInExpression rightExpression)
+
+        Xor leftExpression rightExpression ->
+            List.append (fieldsInExpression leftExpression) (fieldsInExpression rightExpression)
+
+
+fieldsInPrimaryValue : PrimaryValue -> List ColumnIdentifier
+fieldsInPrimaryValue primaryValue =
+    case primaryValue of
+        Predicate predicate ->
+            fieldInPredicate predicate
+
+        Eq subValue predicate ->
+            List.append (fieldsInPrimaryValue subValue) (fieldInPredicate predicate)
+
+        Neq subValue predicate ->
+            List.append (fieldsInPrimaryValue subValue) (fieldInPredicate predicate)
+
+        Gt subValue predicate ->
+            List.append (fieldsInPrimaryValue subValue) (fieldInPredicate predicate)
+
+        Gte subValue predicate ->
+            List.append (fieldsInPrimaryValue subValue) (fieldInPredicate predicate)
+
+        Lt subValue predicate ->
+            List.append (fieldsInPrimaryValue subValue) (fieldInPredicate predicate)
+
+        Lte subValue predicate ->
+            List.append (fieldsInPrimaryValue subValue) (fieldInPredicate predicate)
+
+
+fieldInPredicate : Predicate -> List ColumnIdentifier
+fieldInPredicate predicate =
+    case predicate of
+        SimpleExpr (Identifier columnIdentifier) ->
+            [ columnIdentifier ]
+
+        _ ->
+            []
 
 
 select : SelectQuery a
@@ -267,3 +394,11 @@ withAliasedTable : TableIdentifier -> TableIdentifier -> SelectQuery a -> Select
 withAliasedTable table alias (SelectQuery query) =
     SelectQuery <|
         { query | from = Just <| TableWithAlias table alias }
+
+
+withTableContaining : TableIdentifier -> List ColumnIdentifier -> SelectQuery a -> SelectQuery a
+withTableContaining table columns (SelectQuery query) =
+    SelectQuery <|
+        { query
+            | from = Just <| TableWithFields table columns
+        }
