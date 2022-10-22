@@ -367,8 +367,13 @@ withColumnIdentifier identifier (SelectQuery query) =
         { query
             | select =
                 query.select
-                    ++ [ Expression <| Primary <| Predicate <| SimpleExpr <| Identifier identifier ]
+                    ++ [ columnExpression identifier ]
         }
+
+
+columnExpression : ColumnIdentifier -> SelectExpression
+columnExpression identifier =
+    Expression <| Primary <| Predicate <| SimpleExpr <| Identifier identifier
 
 
 withColumnExpression : Expression -> SelectQuery a -> SelectQuery a
