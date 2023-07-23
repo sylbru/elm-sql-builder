@@ -1,4 +1,4 @@
-module SqlBuilder exposing (SelectQuery, availableFields, requiredFields, select, toString, withAliasedTable, withColumnIdentifier, withColumnsIdentifiers, withTable, withTableContaining)
+module SqlBuilder exposing (SelectQuery, availableFields, requiredFields, select, toString, withAliasedTable, withColumnIdentifier, withColumnIdentifiers, withTable, withTableContaining)
 
 
 type SelectQuery a
@@ -382,8 +382,8 @@ withColumnExpression expression (SelectQuery query) =
         { query | select = query.select ++ [ Expression expression ] }
 
 
-withColumnsIdentifiers : List ColumnIdentifier -> SelectQuery a -> SelectQuery a
-withColumnsIdentifiers identifiers (SelectQuery query) =
+withColumnIdentifiers : List ColumnIdentifier -> SelectQuery a -> SelectQuery a
+withColumnIdentifiers identifiers (SelectQuery query) =
     List.foldl
         (\identifier q -> q |> withColumnIdentifier identifier)
         (SelectQuery query)

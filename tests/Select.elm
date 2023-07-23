@@ -34,14 +34,14 @@ toString =
             \_ ->
                 SqlBuilder.select
                     |> SqlBuilder.withAliasedTable "main_table" "mt"
-                    |> SqlBuilder.withColumnsIdentifiers [ "f", "g" ]
+                    |> SqlBuilder.withColumnIdentifiers [ "f", "g" ]
                     |> SqlBuilder.toString
                     |> Expect.equal (Ok "SELECT f, g\nFROM main_table mt")
         , test "Can’t build query if fields are not available" <|
             \_ ->
                 SqlBuilder.select
                     |> SqlBuilder.withTableContaining "main_table" [ "a", "b" ]
-                    |> SqlBuilder.withColumnsIdentifiers [ "a", "b", "c" ]
+                    |> SqlBuilder.withColumnIdentifiers [ "a", "b", "c" ]
                     |> SqlBuilder.toString
                     |> Expect.equal (Err "Can’t build query")
         ]
@@ -65,6 +65,6 @@ requiredFields =
         [ test "Required fields for table based on select" <|
             \_ ->
                 SqlBuilder.requiredFields
-                    (SqlBuilder.select |> SqlBuilder.withColumnsIdentifiers [ "a", "b", "c" ])
+                    (SqlBuilder.select |> SqlBuilder.withColumnIdentifiers [ "a", "b", "c" ])
                     |> Expect.equal [ "a", "b", "c" ]
         ]
