@@ -250,23 +250,28 @@ isValid ((SelectQuery selectQuery) as wrapped) =
                 Nothing ->
                     []
 
-        tableHasFieldsInfo : Table -> Bool
-        tableHasFieldsInfo table =
+        tableHasFieldInfo : Table -> Bool
+        tableHasFieldInfo table =
             case table of
                 TableWithFields _ _ ->
                     True
 
                 _ ->
                     False
+
+        atLeastOneTableWithoutFieldInfo =
+            -- At least one table has no field info,
+            -- so we can’t know if fields are unavailable
+            List.any (not << tableHasFieldInfo) tables
+
+        allFieldsAvailable =
+            -- When all tables have field info, we can check if
+            -- all required fields are available
+            List.all
+                (\fieldInSelect -> List.member fieldInSelect (availableFields wrapped))
+                (requiredFields wrapped)
     in
-    -- At least one table has no field info,
-    -- so we can’t know if fields are unavailable
-    List.any (not << tableHasFieldsInfo) tables
-        || -- All tables have field info, we can check if
-           -- all required fields are available
-           List.all
-            (\fieldInSelect -> List.member fieldInSelect (availableFields wrapped))
-            (requiredFields wrapped)
+    atLeastOneTableWithoutFieldInfo || allFieldsAvailable
 
 
 availableFields : SelectQuery a -> List ColumnIdentifier
