@@ -42,6 +42,14 @@ toString =
                     |> SqlBuilder.withColumnExpression (SqlBuilder.float 3.14)
                     |> SqlBuilder.toString
                     |> Expect.equal (Ok "SELECT TRUE, FALSE, NULL, \"test\", 42, 3.14")
+        , test "Select with expression and field" <|
+            \_ ->
+                SqlBuilder.select
+                    |> SqlBuilder.withColumnExpression (SqlBuilder.int 33)
+                    |> SqlBuilder.withColumnIdentifier "some_field"
+                    |> SqlBuilder.withTable "t"
+                    |> SqlBuilder.toString
+                    |> Expect.equal (Ok "SELECT 33, some_field\nFROM t")
         , test "Can’t build query if fields are not available" <|
             \_ ->
                 SqlBuilder.select
