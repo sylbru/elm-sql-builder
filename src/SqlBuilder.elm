@@ -12,7 +12,13 @@ type SelectQuery a
 type SelectExpression
     = All
     | AllFromTable TableIdentifier
-    | Expression Expression
+    | Expression Expression -- TODO: Add aliases (AS)
+
+
+
+-- Identifiers from referenced tables are available in SELECT expressions and in WHERE
+-- Columns (identifiers and aliased expressions) are available in HAVING
+-- Should SelectExpression be renamed to Column?
 
 
 type alias ColumnIdentifier =
@@ -39,7 +45,7 @@ type Expression
 
 type PrimaryValue
     = Predicate Predicate
-    | Eq PrimaryValue Predicate
+    | Eq PrimaryValue Predicate -- TODO: why are both sides different?
     | Neq PrimaryValue Predicate
     | Gt PrimaryValue Predicate
     | Gte PrimaryValue Predicate
@@ -48,7 +54,7 @@ type PrimaryValue
 
 
 type Predicate
-    = SimpleExpr SimpleExpr
+    = SimpleExpr SimpleExpr -- TODO: for operations ? (+, -, …)
 
 
 type SimpleExpr
