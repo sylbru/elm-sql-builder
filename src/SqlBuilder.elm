@@ -1,4 +1,4 @@
-module SqlBuilder exposing (SelectQuery, availableFields, false, float, int, null, requiredFields, select, string, toString, true, withAliasedTable, withColumnExpression, withColumnIdentifier, withColumnIdentifiers, withTable, withTableContaining)
+module SqlBuilder exposing (SelectQuery, and, availableFields, false, float, int, not, null, or, requiredFields, select, string, toString, true, withAliasedTable, withColumnExpression, withColumnIdentifier, withColumnIdentifiers, withTable, withTableContaining, xor)
 
 
 type SelectQuery a
@@ -262,7 +262,7 @@ isValid ((SelectQuery selectQuery) as wrapped) =
         atLeastOneTableWithoutFieldInfo =
             -- At least one table has no field info,
             -- so we can’t know if fields are unavailable
-            List.any (not << tableHasFieldInfo) tables
+            List.any (Basics.not << tableHasFieldInfo) tables
 
         allFieldsAvailable =
             -- When all tables have field info, we can check if
@@ -451,3 +451,23 @@ int value =
 float : Float -> Expression
 float value =
     literalToExpression <| LiteralFloat value
+
+
+not : Expression -> Expression
+not =
+    Not
+
+
+and : Expression -> Expression -> Expression
+and =
+    And
+
+
+or : Expression -> Expression -> Expression
+or =
+    Or
+
+
+xor : Expression -> Expression -> Expression
+xor =
+    Xor

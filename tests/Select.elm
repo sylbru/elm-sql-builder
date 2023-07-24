@@ -50,6 +50,19 @@ toString =
                     |> SqlBuilder.withTable "t"
                     |> SqlBuilder.toString
                     |> Expect.equal (Ok "SELECT 33, some_field\nFROM t")
+        , test "Select with complex expression" <|
+            \_ ->
+                SqlBuilder.select
+                    |> SqlBuilder.withColumnExpression
+                        (SqlBuilder.or
+                            SqlBuilder.true
+                            (SqlBuilder.and
+                                (SqlBuilder.xor (SqlBuilder.string "yep") SqlBuilder.null)
+                                SqlBuilder.false
+                            )
+                        )
+                    |> SqlBuilder.toString
+                    |> Expect.equal (Ok "SELECT (TRUE OR ((\"yep\" XOR NULL) AND FALSE))")
         , test "Can’t build query if fields are not available" <|
             \_ ->
                 SqlBuilder.select
