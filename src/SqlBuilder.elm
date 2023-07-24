@@ -16,6 +16,15 @@ module SqlBuilder exposing
 @docs not, and, or, xor
 @docs availableFields, requiredFields
 
+-- Identifiers from referenced tables are available in SELECT expressions and in WHERE
+-- Columns (identifiers and aliased expressions) are available in HAVING
+-- Should SelectExpression be renamed to Column?
+
+-- TODO: Column references (some\_field, table.some\_field…) are different from column names (some\_field), and from columns in SELECT
+-- A join’s ON clause needs to accept simple column names, and column references with the table or alias specified, but not fields in SELECT
+-- HAVING needs to accept fields in SELECT, and column names, and column references, but only on selected fields
+-- WHERE needs to accept column names and column references
+
 -}
 
 
@@ -31,12 +40,6 @@ type SelectExpression
     = All
     | AllFromTable TableIdentifier
     | Expression Expression -- TODO: Add aliases (AS)
-
-
-
--- Identifiers from referenced tables are available in SELECT expressions and in WHERE
--- Columns (identifiers and aliased expressions) are available in HAVING
--- Should SelectExpression be renamed to Column?
 
 
 type alias ColumnIdentifier =
