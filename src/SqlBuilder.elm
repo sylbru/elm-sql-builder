@@ -1,4 +1,22 @@
-module SqlBuilder exposing (SelectQuery, and, availableFields, false, float, int, not, null, or, requiredFields, select, string, toString, true, withAliasedTable, withColumnExpression, withColumnIdentifier, withColumnIdentifiers, withTable, withTableContaining, xor)
+module SqlBuilder exposing
+    ( SelectQuery, select, toString
+    , withTable, withAliasedTable, withTableContaining
+    , withColumnExpression, withColumnIdentifier, withColumnIdentifiers
+    , true, false, null, string, int, float
+    , not, and, or, xor
+    , availableFields, requiredFields
+    )
+
+{-|
+
+@docs SelectQuery, select, toString
+@docs withTable, withAliasedTable, withTableContaining
+@docs withColumnExpression, withColumnIdentifier, withColumnIdentifiers
+@docs true, false, null, string, int, float
+@docs not, and, or, xor
+@docs availableFields, requiredFields
+
+-}
 
 
 type SelectQuery a
