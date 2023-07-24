@@ -6,12 +6,6 @@ import SqlBuilder
 import Test exposing (..)
 
 
-
---Expr.and
---    (Expr.gt (Expr.column "a") (Expr.int "42"))
---    (Expr.or (Expr.string "hey") Expr.true)
-
-
 toString : Test
 toString =
     describe "toString"
@@ -37,6 +31,17 @@ toString =
                     |> SqlBuilder.withColumnIdentifiers [ "f", "g" ]
                     |> SqlBuilder.toString
                     |> Expect.equal (Ok "SELECT f, g\nFROM main_table mt")
+        , test "Select with literal values" <|
+            \_ ->
+                SqlBuilder.select
+                    |> SqlBuilder.withColumnExpression SqlBuilder.true
+                    |> SqlBuilder.withColumnExpression SqlBuilder.false
+                    |> SqlBuilder.withColumnExpression SqlBuilder.null
+                    |> SqlBuilder.withColumnExpression (SqlBuilder.string "test")
+                    |> SqlBuilder.withColumnExpression (SqlBuilder.int 42)
+                    |> SqlBuilder.withColumnExpression (SqlBuilder.float 3.14)
+                    |> SqlBuilder.toString
+                    |> Expect.equal (Ok "SELECT TRUE, FALSE, NULL, \"test\", 42, 3.14")
         , test "Can’t build query if fields are not available" <|
             \_ ->
                 SqlBuilder.select

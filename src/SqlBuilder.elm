@@ -1,4 +1,4 @@
-module SqlBuilder exposing (SelectQuery, availableFields, requiredFields, select, toString, withAliasedTable, withColumnIdentifier, withColumnIdentifiers, withTable, withTableContaining)
+module SqlBuilder exposing (SelectQuery, availableFields, false, float, int, null, requiredFields, select, string, toString, true, withAliasedTable, withColumnExpression, withColumnIdentifier, withColumnIdentifiers, withTable, withTableContaining)
 
 
 type SelectQuery a
@@ -81,8 +81,8 @@ literalValueToString literalValue =
         LiteralNull ->
             "NULL"
 
-        LiteralString string ->
-            "\"" ++ string ++ "\""
+        LiteralString stringValue ->
+            "\"" ++ stringValue ++ "\""
 
         LiteralInt intNumber ->
             String.fromInt intNumber
@@ -412,3 +412,42 @@ withTableContaining table columns (SelectQuery query) =
         { query
             | from = Just <| TableWithFields table columns
         }
+
+
+
+-- Expressions
+
+
+literalToExpression : LiteralValue -> Expression
+literalToExpression =
+    Primary << Predicate << SimpleExpr << Literal
+
+
+true : Expression
+true =
+    literalToExpression <| LiteralTrue
+
+
+false : Expression
+false =
+    literalToExpression <| LiteralFalse
+
+
+null : Expression
+null =
+    literalToExpression <| LiteralNull
+
+
+string : String -> Expression
+string value =
+    literalToExpression <| LiteralString value
+
+
+int : Int -> Expression
+int value =
+    literalToExpression <| LiteralInt value
+
+
+float : Float -> Expression
+float value =
+    literalToExpression <| LiteralFloat value
